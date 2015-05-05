@@ -27,7 +27,7 @@ func DefaultBacko() *Backo {
 	return &Backo{time.Millisecond * 100, 2, 0, time.Second * 10}
 }
 
-// Duration returns the backoff duration for the given attempt number
+// Duration returns the backoff interval for the given attempt
 func (backo *Backo) Duration(attempt int) time.Duration {
 	duration := float64(backo.base) * math.Pow(float64(backo.factor), float64(attempt))
 
@@ -45,7 +45,7 @@ func (backo *Backo) Duration(attempt int) time.Duration {
 	return time.Duration(duration)
 }
 
-// Sleep pauses the current goroutine for the backoff duration for the given attempt
+// Sleep pauses the current goroutine for the backoff interval for the given attempt
 func (backo *Backo) Sleep(attempt int) {
 	duration := backo.Duration(attempt)
 	time.Sleep(duration)
