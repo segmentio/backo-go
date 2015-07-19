@@ -1,9 +1,12 @@
 package backo
 
 import (
-	"github.com/bmizerany/assert"
+	"fmt"
+	"math"
 	"testing"
 	"time"
+
+	"github.com/bmizerany/assert"
 )
 
 // Tests default backo behaviour.
@@ -36,6 +39,36 @@ func TestJitter(t *testing.T) {
 	assert.NotEqual(t, jitterBacko.Duration(1), defaultBacko.Duration(1))
 	assert.NotEqual(t, jitterBacko.Duration(2), defaultBacko.Duration(2))
 	assert.NotEqual(t, jitterBacko.Duration(3), defaultBacko.Duration(3))
+}
+
+func ExampleBacko_BackoffDefault() {
+	b := DefaultBacko()
+	ticker := b.NewTicker()
+
+	for i := 0; i < 6; i++ {
+		start := time.Now()
+		select {
+		case t := <-ticker.C:
+			fmt.Println(nearest10Millis(t.Sub(start)))
+		}
+	}
+
+	ticker.Stop()
+
+	// Output:
+	// 100
+	// 200
+	// 400
+	// 800
+	// 1600
+	// 3200
+}
+
+func nearest10Millis(d time.Duration) float64 {
+	// Typically d is something like 11 or 21, so do some magic to round the
+	// durations to the nearest 10. We divide d by 10, floor it, and multiply it
+	// by 10 again.
+	return math.Floor(float64(d/time.Millisecond/10) * 10)
 }
 
 // Returns the given milliseconds as time.Duration

@@ -24,10 +24,10 @@ func NewBacko(base time.Duration, factor uint8, jitter float64, cap time.Duratio
 //   jitter: 0
 //   cap: 10 seconds
 func DefaultBacko() *Backo {
-	return &Backo{time.Millisecond * 100, 2, 0, time.Second * 10}
+	return NewBacko(time.Millisecond*100, 2, 0, time.Second*10)
 }
 
-// Duration returns the backoff interval for the given attempt
+// Duration returns the backoff interval for the given attempt.
 func (backo *Backo) Duration(attempt int) time.Duration {
 	duration := float64(backo.base) * math.Pow(float64(backo.factor), float64(attempt))
 
@@ -45,8 +45,39 @@ func (backo *Backo) Duration(attempt int) time.Duration {
 	return time.Duration(duration)
 }
 
-// Sleep pauses the current goroutine for the backoff interval for the given attempt
+// Sleep pauses the current goroutine for the backoff interval for the given attempt.
 func (backo *Backo) Sleep(attempt int) {
 	duration := backo.Duration(attempt)
 	time.Sleep(duration)
+}
+
+type Ticker struct {
+	done chan struct{}
+	C    <-chan time.Time
+}
+
+func (b *Backo) NewTicker() *Ticker {
+	c := make(chan time.Time, 1)
+	ticker := &Ticker{
+		done: make(chan struct{}, 1),
+		C:    c,
+	}
+
+	go func() {
+		for i := 0; ; i++ {
+			select {
+			case t := <-time.After(b.Duration(i)):
+				c <- t
+			case <-ticker.done:
+				close(c)
+				return
+			}
+		}
+	}()
+
+	return ticker
+}
+
+func (t *Ticker) Stop() {
+	t.done <- struct{}{}
 }
