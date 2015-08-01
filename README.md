@@ -10,14 +10,28 @@ Usage
 ```go
 import "github.com/segmentio/backo-go"
 
+// Create a Backo instance.
 backo := backo.NewBacko(milliseconds(100), 2, 1, milliseconds(10*1000))
-// OR with defaults
+// OR with defaults.
 backo := backo.DefaultBacko()
 
+// Use the ticker API.
+ticker := b.NewTicker()
+for {
+    timeout := time.After(5 * time.Minute)
+    select {
+    case  <-ticker.C:
+        fmt.Println("ticked")
+    case <- timeout:
+        fmt.Println("timed out")
+    }
+}
+
+// Or simply work with backoff intervals directly.
 for i := 0; i < n; i++ {
-    // Sleep the current goroutine
+    // Sleep the current goroutine.
     backo.Sleep(i)
-    // Or retrieve the duration manually
+    // Retrieve the duration manually.
     duration := backo.Duration(i)
 }
 ```
