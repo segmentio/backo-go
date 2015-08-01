@@ -1,4 +1,4 @@
-Backo
+Backo [![GoDoc](http://godoc.org/github.com/segmentio/backo-go?status.png)](http://godoc.org/github.com/segmentio/backo-go)
 -----
 
 Exponential backoff for Go (Go port of segmentio/backo).
